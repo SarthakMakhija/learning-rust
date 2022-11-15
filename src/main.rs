@@ -5,6 +5,7 @@ mod closure;
 mod sequential_sum;
 mod concurrent_sum;
 mod async_sum;
+mod singular_update_queue;
 
 fn main() {
     println!("Hello, world!");
