@@ -9,3 +9,4 @@ Repository to learn rust before implementing pluggable replication mechanism for
 - concurrent (or parallel depending on the number of core available) sum of a huge vector
 - async sum of a huge vector (using tokio)
 - singular update queue
+- append-only linked list

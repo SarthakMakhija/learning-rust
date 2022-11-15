@@ -6,6 +6,7 @@ mod sequential_sum;
 mod concurrent_sum;
 mod async_sum;
 mod singular_update_queue;
+mod linked_list;
 
 fn main() {
     println!("Hello, world!");
