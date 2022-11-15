@@ -32,15 +32,15 @@ enum Status {
 }
 
 impl SingularUpdateQueue {
-    async fn init(handler: Storage) -> SingularUpdateQueue {
-        return SingularUpdateQueue::spin_receiver(handler);
+    async fn init(storage: Storage) -> SingularUpdateQueue {
+        return SingularUpdateQueue::spin_receiver(storage);
     }
 
     //loop pending
-    fn spin_receiver(mut handler: Storage) -> SingularUpdateQueue {
+    fn spin_receiver(mut storage: Storage) -> SingularUpdateQueue {
         let (sender, mut receiver): (Sender<Command>, Receiver<Command>) = mpsc::channel(1);
         let mut singular_update_queue = SingularUpdateQueue { sender };
-        let mut cloned = handler.clone();
+        let mut cloned = storage.clone();
 
         tokio::spawn(async move {
             while let Some(command) = receiver.recv().await {
