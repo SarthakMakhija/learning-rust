@@ -4,6 +4,7 @@ mod basic_error_handling;
 mod closure;
 mod sequential_sum;
 mod concurrent_sum;
+mod async_sum;
 
 fn main() {
     println!("Hello, world!");
