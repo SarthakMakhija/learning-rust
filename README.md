@@ -1,8 +1,7 @@
 # learning-rust
 Repository to learn rust before implementing pluggable replication mechanism for distributed systems
 
-# Contents
-
+# contents
 - basic example using struct and its impl
 - an example of lifetime with struct
 - an example of closure with struct
