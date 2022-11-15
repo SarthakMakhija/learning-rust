@@ -78,7 +78,7 @@ fn test_find_employees_by_salary_gt() {
     employees.add(Employee { name: "A".to_string(), id: 1, salary: 200.34 });
     employees.add(Employee { name: "B".to_string(), id: 2, salary: 100.34 });
 
-    let found = employees.find_by_closure(|e: &Employee| -> bool {
+    let found = employees.find_by_predicate(|e: &Employee| -> bool {
         return e.salary > 100.34;
     });
     assert_eq!(1, found.unwrap().id);
