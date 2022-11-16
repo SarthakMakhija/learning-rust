@@ -1,4 +1,5 @@
 use tokio::task::JoinHandle;
+use crate::concurrency::sum_of;
 
 const CONCURRENCY_FACTOR: usize = 10;
 
@@ -28,14 +29,6 @@ async fn concurrent_sum(input: Vec<u64>) -> Vec<JoinHandle<u64>> {
 
 fn divide(input: &Vec<u64>, chunk_size: usize) -> Vec<Vec<u64>> {
     return input.chunks(chunk_size).map(|s| s.into()).collect();
-}
-
-fn sum_of(chunk: Vec<u64>) -> u64 {
-    let mut sum: u64 = 0;
-    for value in chunk {
-        sum = sum + value;
-    }
-    return sum;
 }
 
 #[tokio::test]

@@ -1,15 +1,13 @@
-fn sum_of(chunk: Vec<u64>) -> u64 {
-    let mut sum: u64 = 0;
-    for value in chunk {
-        sum = sum + value;
-    }
-    return sum;
+use crate::concurrency::sum_of;
+
+pub fn sequential_sum_of(chunk: Vec<u64>) -> u64 {
+    return sum_of(chunk);
 }
 
 #[test]
 fn test_sequential_sum() {
     let elements = prepare(500000);
-    let result = sum_of(elements);
+    let result = sequential_sum_of(elements);
     assert_eq!(125_000_250_000, result);
 }
 
