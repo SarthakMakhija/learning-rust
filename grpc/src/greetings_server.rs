@@ -1,4 +1,4 @@
-use tokio::sync::{mpsc};
+use tokio::sync::mpsc;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
 

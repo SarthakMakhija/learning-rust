@@ -1,11 +1,8 @@
-use std::borrow::BorrowMut;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex, RwLock};
+use std::sync::{Arc, RwLock};
 
 use tokio::sync::{mpsc, oneshot};
 use tokio::sync::mpsc::{Receiver, Sender};
-use tokio::sync::mpsc::error::SendError;
 
 type Storage = Arc<RwLock<HashMap<String, String>>>;
 
@@ -37,10 +34,10 @@ impl AsyncSingularUpdateQueue {
     }
 
     //loop pending
-    fn spin_receiver(mut storage: Storage) -> AsyncSingularUpdateQueue {
+    fn spin_receiver(storage: Storage) -> AsyncSingularUpdateQueue {
         let (sender, mut receiver): (Sender<Command>, Receiver<Command>) = mpsc::channel(1);
-        let mut singular_update_queue = AsyncSingularUpdateQueue { sender };
-        let mut cloned = storage.clone();
+        let singular_update_queue = AsyncSingularUpdateQueue { sender };
+        let cloned = storage.clone();
 
         tokio::spawn(async move {
             while let Some(command) = receiver.recv().await {
@@ -66,7 +63,7 @@ impl AsyncSingularUpdateQueue {
 
 #[tokio::test]
 async fn test_get_with_insert_by_a_single_task() {
-    let mut storage = Arc::new(RwLock::new(HashMap::new()));
+    let storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
     let singular_update_queue = Arc::new(AsyncSingularUpdateQueue::init(storage.clone()).await);
     let cloned_queue = singular_update_queue.clone();
@@ -89,7 +86,7 @@ async fn test_get_with_insert_by_a_single_task() {
 
 #[tokio::test]
 async fn test_get_with_insert_by_multiple_tasks() {
-    let mut storage = Arc::new(RwLock::new(HashMap::new()));
+    let storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
     let singular_update_queue = Arc::new(AsyncSingularUpdateQueue::init(storage.clone()).await);
     let cloned_queue_one = singular_update_queue.clone();
@@ -124,7 +121,7 @@ async fn test_get_with_insert_by_multiple_tasks() {
 
 #[tokio::test]
 async fn test_get_with_insert_and_delete_by_multiple_tasks() {
-    let mut storage = Arc::new(RwLock::new(HashMap::new()));
+    let storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
     let singular_update_queue = Arc::new(AsyncSingularUpdateQueue::init(storage.clone()).await);
     let cloned_queue_one = singular_update_queue.clone();

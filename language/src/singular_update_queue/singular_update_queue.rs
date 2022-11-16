@@ -1,9 +1,7 @@
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::{Arc, mpsc, Mutex, RwLock};
+use std::sync::{Arc, mpsc, RwLock};
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
-use std::time::Duration;
 
 type Storage = Arc<RwLock<HashMap<String, String>>>;
 
@@ -19,11 +17,11 @@ impl CommandHandler for InMemoryStorageHandler {
     fn handle(&self, command: Command) -> Status {
         let cloned = self.storage.clone();
         return match command {
-            Command::Put { key, value, respond_back } => {
+            Command::Put { key, value, respond_back: _ } => {
                 cloned.write().unwrap().insert(key, value);
                 Status::Ok
             }
-            Command::Delete { key, respond_back } => {
+            Command::Delete { key, respond_back: _ } => {
                 cloned.write().unwrap().remove(&key);
                 Status::Ok
             }
@@ -75,8 +73,8 @@ impl SingularUpdateQueue {
     //loop pending
     fn spin_receiver(handler: Arc<dyn CommandHandler>) -> SingularUpdateQueue {
         let (sender, receiver): (Sender<Command>, Receiver<Command>) = mpsc::channel();
-        let mut singular_update_queue = SingularUpdateQueue { sender };
-        let mut handler_clone = handler.clone();
+        let singular_update_queue = SingularUpdateQueue { sender };
+        let handler_clone = handler.clone();
 
         thread::spawn(move || {
             for (_, command) in receiver.into_iter().enumerate() {
@@ -95,7 +93,7 @@ impl SingularUpdateQueue {
 
 #[test]
 fn test_get_with_insert_by_a_single_task() {
-    let mut storage = Arc::new(RwLock::new(HashMap::new()));
+    let storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
     let handler = Arc::new(InMemoryStorageHandler { storage: storage.clone() });
 
@@ -121,7 +119,7 @@ fn test_get_with_insert_by_a_single_task() {
 
 #[test]
 fn test_get_with_insert_by_multiple_tasks() {
-    let mut storage = Arc::new(RwLock::new(HashMap::new()));
+    let storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
     let handler = Arc::new(InMemoryStorageHandler { storage: storage.clone() });
 
@@ -163,7 +161,7 @@ fn test_get_with_insert_by_multiple_tasks() {
 
 #[test]
 fn test_get_with_insert_and_delete_by_multiple_tasks() {
-    let mut storage = Arc::new(RwLock::new(HashMap::new()));
+    let storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
     let handler = Arc::new(InMemoryStorageHandler { storage: storage.clone() });
 
