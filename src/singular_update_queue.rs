@@ -7,6 +7,30 @@ use std::time::Duration;
 
 type Storage = Arc<RwLock<HashMap<String, String>>>;
 
+trait CommandHandler: Send + Sync {
+    fn handle(&self, command: Command) -> Status;
+}
+
+struct InMemoryStorageHandler {
+    storage: Storage,
+}
+
+impl CommandHandler for InMemoryStorageHandler {
+    fn handle(&self, command: Command) -> Status {
+        let cloned = self.storage.clone();
+        return match command {
+            Command::Put { key, value, respond_back } => {
+                cloned.write().unwrap().insert(key, value);
+                Status::Ok
+            }
+            Command::Delete { key, respond_back } => {
+                cloned.write().unwrap().remove(&key);
+                Status::Ok
+            }
+        };
+    }
+}
+
 #[derive(Clone)]
 struct SingularUpdateQueue {
     sender: Sender<Command>,
@@ -25,34 +49,40 @@ enum Command {
     },
 }
 
+impl Command {
+    fn get_respond_back(&self) -> Sender<Status> {
+        return match self {
+            Command::Put { key: _key, value: _value, respond_back } => {
+                respond_back.clone()
+            }
+            Command::Delete { key: _key, respond_back } => {
+                respond_back.clone()
+            }
+        };
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 enum Status {
     Ok
 }
 
 impl SingularUpdateQueue {
-    fn init(storage: Storage) -> SingularUpdateQueue {
-        return SingularUpdateQueue::spin_receiver(storage);
+    fn init(handler: Arc<dyn CommandHandler>) -> SingularUpdateQueue {
+        return SingularUpdateQueue::spin_receiver(handler);
     }
 
     //loop pending
-    fn spin_receiver(mut storage: Storage) -> SingularUpdateQueue {
+    fn spin_receiver(handler: Arc<dyn CommandHandler>) -> SingularUpdateQueue {
         let (sender, receiver): (Sender<Command>, Receiver<Command>) = mpsc::channel();
         let mut singular_update_queue = SingularUpdateQueue { sender };
-        let mut cloned = storage.clone();
+        let mut handler_clone = handler.clone();
 
         thread::spawn(move || {
             for (_, command) in receiver.into_iter().enumerate() {
-                match command {
-                    Command::Put { key, value, respond_back } => {
-                        cloned.write().unwrap().insert(key, value);
-                        respond_back.clone().send(Status::Ok).unwrap();
-                    }
-                    Command::Delete { key, respond_back } => {
-                        cloned.write().unwrap().remove(&key);
-                        respond_back.clone().send(Status::Ok).unwrap();
-                    }
-                }
+                let respond_back = &command.get_respond_back();
+                let status = handler_clone.handle(command);
+                respond_back.send(status).unwrap();
             }
         });
         return singular_update_queue;
@@ -67,7 +97,9 @@ impl SingularUpdateQueue {
 fn test_get_with_insert_by_a_single_task() {
     let mut storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
-    let singular_update_queue= SingularUpdateQueue::init(storage.clone());
+    let handler = Arc::new(InMemoryStorageHandler { storage: storage.clone() });
+
+    let singular_update_queue = SingularUpdateQueue::init(handler);
     let cloned_queue = singular_update_queue.clone();
 
     let (sender, receiver) = mpsc::channel();
@@ -91,7 +123,9 @@ fn test_get_with_insert_by_a_single_task() {
 fn test_get_with_insert_by_multiple_tasks() {
     let mut storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
-    let singular_update_queue = SingularUpdateQueue::init(storage.clone());
+    let handler = Arc::new(InMemoryStorageHandler { storage: storage.clone() });
+
+    let singular_update_queue = SingularUpdateQueue::init(handler);
     let cloned_queue_one = singular_update_queue.clone();
     let cloned_queue_two = singular_update_queue.clone();
 
@@ -131,7 +165,9 @@ fn test_get_with_insert_by_multiple_tasks() {
 fn test_get_with_insert_and_delete_by_multiple_tasks() {
     let mut storage = Arc::new(RwLock::new(HashMap::new()));
     let cloned_storage = storage.clone();
-    let singular_update_queue = SingularUpdateQueue::init(storage.clone());
+    let handler = Arc::new(InMemoryStorageHandler { storage: storage.clone() });
+
+    let singular_update_queue = SingularUpdateQueue::init(handler);
     let cloned_queue_one = singular_update_queue.clone();
     let cloned_queue_two = singular_update_queue.clone();
 
