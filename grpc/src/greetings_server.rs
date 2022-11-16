@@ -27,7 +27,7 @@ impl Greetings for DefaultGreetingsServer {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn test_greetings() {
-    let server_address = "0.0.0.0:50051".parse().unwrap();
+    let server_address = "127.0.0.1:50051".parse().unwrap();
     let greetings_server = DefaultGreetingsServer::default();
     let (shutdown_signal_sender, mut shutdown_signal_receiver) = mpsc::channel(1);
 
