@@ -52,8 +52,8 @@ async fn test_greetings() {
             .expect("Failed in sending the shutdown signal");
     });
 
-    client_handle.await.unwrap();
     server_handle.await.unwrap();
+    client_handle.await.unwrap();
 }
 
 async fn send_client_request() -> Result<Response<GreetingsResponse>, Box<dyn std::error::Error>> {
