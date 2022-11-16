@@ -14,3 +14,4 @@ Repository to learn rust before implementing pluggable replication mechanism for
   - based on tokio task
   - based on rust thread
 - append-only linked list
+- grpc using tonic and tokio
