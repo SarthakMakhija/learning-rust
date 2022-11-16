@@ -1,3 +1,5 @@
+[![RustBuild](https://github.com/SarthakMakhija/learning-rust/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/SarthakMakhija/learning-rust/actions/workflows/build.yml)
+
 # learning-rust
 Repository to learn rust before implementing pluggable replication mechanism for distributed systems
 
