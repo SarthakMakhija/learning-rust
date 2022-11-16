@@ -1,3 +1,5 @@
+use std::thread;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tonic::{Request, Response, Status};
 use tonic::transport::Server;
@@ -18,6 +20,7 @@ pub mod mod_greetings {
 #[tonic::async_trait]
 impl Greetings for DefaultGreetingsServer {
     async fn say_hello(&self, request: Request<GreetingsRequest>) -> Result<Response<GreetingsResponse>, Status> {
+        println!("request received");
         let reply = mod_greetings::GreetingsResponse {
             message: format!("Hello {}!", request.into_inner().name).into(),
         };
@@ -36,12 +39,14 @@ async fn test_greetings() {
         return;
     };
     let server_handle = tokio::spawn(async move {
+        println!("****************");
         Server::builder()
             .add_service(GreetingsServer::new(greetings_server))
             .serve_with_shutdown(server_address, shutdown_block)
             .await
             .expect("Failed in starting the server");
     });
+    thread::sleep(Duration::from_secs(3));
     let client_handle = tokio::spawn(async move {
         let response = send_client_request().await.unwrap();
         let greetings_response: GreetingsResponse = response.into_inner();
@@ -57,6 +62,7 @@ async fn test_greetings() {
 }
 
 async fn send_client_request() -> Result<Response<GreetingsResponse>, Box<dyn std::error::Error>> {
+    println!(">>>>>>>>>>>>>>>>>");
     let mut client = GreetingsClient::connect("http://[::1]:50051/").await?;
     let request = Request::new(GreetingsRequest {
         name: "Learning Rust".into(),
