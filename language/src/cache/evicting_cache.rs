@@ -2,10 +2,11 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
-use std::sync::{Mutex, RwLock};
+use std::sync::{RwLock};
+use std::thread;
 use std::time::Duration;
 
-use crate::cache::ttl::{Expiry, ValueRef};
+use crate::cache::expiry::{Expiry, ValueRef};
 
 struct EvictingCache {
     elements: Vec<RwLock<HashMap<String, Rc<ValueRef>>>>,
@@ -22,9 +23,13 @@ impl EvictingCache {
     }
 
     fn put(&mut self, key: String, value: String) {
+        self.put_with_expiry(key, value, Expiry::never());
+    }
+
+    fn put_with_expiry(&mut self, key: String, value: String, expiry: Expiry) {
         let key_index = self.index_of(&key);
         let mut value_by_key = self.elements[key_index].write().unwrap();
-        value_by_key.insert(key, Rc::new(ValueRef::new(value, Expiry::never())));
+        value_by_key.insert(key, Rc::new(ValueRef::new(value, expiry)));
     }
 
     fn get(&self, key: String) -> Option<Rc<ValueRef>> {
@@ -33,7 +38,12 @@ impl EvictingCache {
 
         return match value_by_key.get(&key) {
             None => { None }
-            Some(rc_value) => { Some(rc_value.clone()) }
+            Some(rc_value) => {
+                return match rc_value.has_expired() {
+                    true => None,
+                    false => Some(rc_value.clone())
+                };
+            }
         };
     }
 
@@ -61,5 +71,14 @@ fn test_get_value_by_an_non_existing_key() {
     evicting_cache.put(String::from("disk_type"), String::from("SSD"));
 
     let value: Option<Rc<ValueRef>> = evicting_cache.get(String::from("non_existing"));
+    assert!(value.is_none());
+}
+
+#[test]
+fn test_get_value_by_an_expired_value_of_key() {
+    let mut evicting_cache = EvictingCache::new(64);
+    evicting_cache.put_with_expiry(String::from("disk_type"), String::from("SSD"), Expiry::immediate());
+
+    let value: Option<Rc<ValueRef>> = evicting_cache.get(String::from("disk_type"));
     assert!(value.is_none());
 }

@@ -1,4 +1,3 @@
-use std::mem::transmute;
 use std::thread;
 use std::time::Duration;
 
@@ -36,6 +35,10 @@ pub struct Expiry {
 impl Expiry {
     pub fn never() -> Expiry {
         return Expiry { instant: None };
+    }
+
+    pub(crate) fn immediate() -> Expiry {
+        return Expiry { instant: Some(Instant::now()) };
     }
 
     pub fn after_seconds(time: u64) -> Expiry {
