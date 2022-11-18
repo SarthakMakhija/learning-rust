@@ -5,6 +5,7 @@ mod closure;
 mod linked_list;
 mod concurrency;
 mod singular_update_queue;
+mod cache;
 
 fn main() {
     println!("Hello, world!");
