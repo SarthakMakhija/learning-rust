@@ -15,3 +15,7 @@ Repository to learn rust before implementing pluggable replication mechanism for
   - based on rust thread
 - append-only linked list
 - grpc using tonic and tokio
+- naive implementation of an in-memory cache with eviction in background
+  - Need to understand the following: 
+    - can this be simplified `pub(crate) type ShardedLockedStorage = Arc<Vec<RwLock<HashMap<String, Arc<ValueRef>>>>>`
+    - testing `thread::spawn` code in rust
