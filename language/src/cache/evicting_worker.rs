@@ -25,8 +25,6 @@ impl EvictingWorker {
         thread::spawn(move || {
             worker.evict();
             worker.current_bucket = (worker.current_bucket + 1) % worker.buckets;
-            println!("map size {}", worker.storage.len());
-
             thread::sleep(EvictingWorker::SLEEP_FOR_SECONDS);
         });
     }
@@ -34,8 +32,6 @@ impl EvictingWorker {
     fn evict(&self) {
         let mut locked_storage = self.storage[self.current_bucket].write().unwrap();
         locked_storage.retain(|key, value_ref| {
-            println!("checking key {}", key);
-            println!("checking value {}", value_ref.has_expired());
             !value_ref.has_expired()
         });
     }
