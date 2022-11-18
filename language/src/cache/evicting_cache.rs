@@ -2,14 +2,16 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
-use std::sync::{RwLock};
+use std::sync::{Arc, RwLock};
 use std::thread;
 use std::time::Duration;
 
 use crate::cache::expiry::{Expiry, ValueRef};
 
+type ShardedLockedStorage = Arc<Vec<RwLock<HashMap<String, Rc<ValueRef>>>>>;
+
 struct EvictingCache {
-    elements: Vec<RwLock<HashMap<String, Rc<ValueRef>>>>,
+    elements: ShardedLockedStorage,
     buckets: usize,
 }
 
@@ -19,7 +21,7 @@ impl EvictingCache {
         for _ in 0..buckets {
             elements.push(RwLock::new(HashMap::new()));
         }
-        return EvictingCache { elements, buckets };
+        return EvictingCache { elements: Arc::new(elements), buckets };
     }
 
     fn put(&mut self, key: String, value: String) {
