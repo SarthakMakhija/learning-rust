@@ -23,9 +23,11 @@ impl EvictingWorker {
     fn run_from(buckets: usize, current_bucket: BucketIndex, storage: ShardedLockedStorage) {
         let mut worker = EvictingWorker { storage, current_bucket, buckets };
         thread::spawn(move || {
-            worker.evict();
-            worker.current_bucket = (worker.current_bucket + 1) % worker.buckets;
-            thread::sleep(EvictingWorker::SLEEP_FOR_SECONDS);
+            loop {
+                worker.evict();
+                worker.current_bucket = (worker.current_bucket + 1) % worker.buckets;
+                thread::sleep(EvictingWorker::SLEEP_FOR_SECONDS);
+            }
         });
     }
 
@@ -52,7 +54,7 @@ fn test_eviction() {
     let storage: ShardedLockedStorage = Arc::new(vec![RwLock::new((key_value_pairs))]);
     EvictingWorker::run(1, storage.clone());
 
-    thread::sleep(Duration::from_secs(10));
+    thread::sleep(Duration::from_secs(5));
 
     let read_map = storage[0].read().unwrap();
     let expired_value = read_map.get("expired");
