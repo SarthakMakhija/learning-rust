@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use std::thread;
-use std::thread::JoinHandle;
 use std::time::Duration;
 
 use crate::cache::evicting_cache::{BucketIndex, ShardedLockedStorage};
@@ -33,7 +32,7 @@ impl EvictingWorker {
 
     fn evict(&self) {
         let mut locked_storage = self.storage[self.current_bucket].write().unwrap();
-        locked_storage.retain(|key, value_ref| {
+        locked_storage.retain(|_, value_ref| {
             !value_ref.has_expired()
         });
     }
@@ -51,7 +50,7 @@ fn test_eviction() {
             )
         ],
     );
-    let storage: ShardedLockedStorage = Arc::new(vec![RwLock::new((key_value_pairs))]);
+    let storage: ShardedLockedStorage = Arc::new(vec![RwLock::new(key_value_pairs)]);
     EvictingWorker::run(1, storage.clone());
 
     thread::sleep(Duration::from_secs(5));

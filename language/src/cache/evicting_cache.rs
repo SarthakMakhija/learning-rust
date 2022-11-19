@@ -38,7 +38,7 @@ impl EvictingCache {
 
     fn get(&self, key: String) -> Option<Arc<ValueRef>> {
         let key_index = self.index_of(&key);
-        let mut value_by_key = self.storage[key_index].read().unwrap();
+        let value_by_key = self.storage[key_index].read().unwrap();
 
         return match value_by_key.get(&key) {
             None => { None }
