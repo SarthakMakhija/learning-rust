@@ -71,46 +71,53 @@ impl LinkedListNode {
     }
 }
 
-#[test]
-fn test_add_and_ensure_a_key_is_present() {
-    let mut list = LinkedList::new();
-    list.append(10);
-    list.append(30);
-    list.append(20);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let has = list.has(10);
-    assert!(has);
+    #[test]
+    fn test_add_and_ensure_a_key_is_present() {
+        let mut list = LinkedList::new();
+        list.append(10);
+        list.append(30);
+        list.append(20);
+
+        let has = list.has(10);
+        assert!(has);
+    }
+
+    #[test]
+    fn test_add_and_check_for_a_missing_key() {
+        let mut list = LinkedList::new();
+        list.append(10);
+        list.append(30);
+        list.append(20);
+
+        let has = list.has(2);
+        assert_eq!(false, has);
+    }
+
+    #[test]
+    fn test_add_and_count_for_single_key() {
+        let mut list = LinkedList::new();
+        list.append(10);
+
+        let count = list.count();
+        assert_eq!(1, count);
+    }
+
+    #[test]
+    fn test_add_and_count_for_keys() {
+        let mut list = LinkedList::new();
+        list.append(10);
+        list.append(30);
+        list.append(20);
+        list.append(90);
+        list.append(80);
+
+        let count = list.count();
+        assert_eq!(5, count);
+    }
+
 }
 
-#[test]
-fn test_add_and_check_for_a_missing_key() {
-    let mut list = LinkedList::new();
-    list.append(10);
-    list.append(30);
-    list.append(20);
-
-    let has = list.has(2);
-    assert_eq!(false, has);
-}
-
-#[test]
-fn test_add_and_count_for_single_key() {
-    let mut list = LinkedList::new();
-    list.append(10);
-
-    let count = list.count();
-    assert_eq!(1, count);
-}
-
-#[test]
-fn test_add_and_count_for_keys() {
-    let mut list = LinkedList::new();
-    list.append(10);
-    list.append(30);
-    list.append(20);
-    list.append(90);
-    list.append(80);
-
-    let count = list.count();
-    assert_eq!(5, count);
-}
