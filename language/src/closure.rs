@@ -33,22 +33,28 @@ impl ArithmeticOperations {
     }
 }
 
-#[test]
-fn test_execute_addition() {
-    let mut operation = ArithmeticOperations::new();
-    operation.add(OperationId::Addition, |a, b| {
-        a + b
-    });
-    let result = operation.execute(OperationId::Addition, 4, 90);
-    assert_eq!(94, result.unwrap());
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_execute_addition() {
+        let mut operation = ArithmeticOperations::new();
+        operation.add(OperationId::Addition, |a, b| {
+            a + b
+        });
+        let result = operation.execute(OperationId::Addition, 4, 90);
+        assert_eq!(94, result.unwrap());
+    }
+
+    #[test]
+    fn test_execute_multiplication() {
+        let mut operation = ArithmeticOperations::new();
+        operation.add(OperationId::Multiplication, |a, b| {
+            a * b
+        });
+        let result = operation.execute(OperationId::Multiplication, 10, 90);
+        assert_eq!(900, result.unwrap());
+    }
 }
 
-#[test]
-fn test_execute_multiplication() {
-    let mut operation = ArithmeticOperations::new();
-    operation.add(OperationId::Multiplication, |a, b| {
-        a * b
-    });
-    let result = operation.execute(OperationId::Multiplication, 10, 90);
-    assert_eq!(900, result.unwrap());
-}

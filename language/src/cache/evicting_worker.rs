@@ -38,28 +38,33 @@ impl EvictingWorker {
     }
 }
 
-#[test]
-fn test_eviction() {
-    let key_value_pairs = HashMap::from(
-        [
-            (String::from("expired"),
-             Arc::new(ValueRef::new(String::from("expired_value"), Expiry::immediate()))
-            ),
-            (String::from("living"),
-             Arc::new(ValueRef::new(String::from("living_value"), Expiry::never()))
-            )
-        ],
-    );
-    let storage: ShardedLockedStorage = Arc::new(vec![RwLock::new(key_value_pairs)]);
-    EvictingWorker::run(1, storage.clone());
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    thread::sleep(Duration::from_secs(5));
+    #[test]
+    fn test_eviction() {
+        let key_value_pairs = HashMap::from(
+            [
+                (String::from("expired"),
+                 Arc::new(ValueRef::new(String::from("expired_value"), Expiry::immediate()))
+                ),
+                (String::from("living"),
+                 Arc::new(ValueRef::new(String::from("living_value"), Expiry::never()))
+                )
+            ],
+        );
+        let storage: ShardedLockedStorage = Arc::new(vec![RwLock::new(key_value_pairs)]);
+        EvictingWorker::run(1, storage.clone());
 
-    let read_map = storage[0].read().unwrap();
-    let expired_value = read_map.get("expired");
-    let living_value = read_map.get("living");
+        thread::sleep(Duration::from_secs(5));
 
-    assert_eq!(1, read_map.len());
-    assert_eq!(true, expired_value.is_none());
-    assert_eq!(&String::from("living_value"), living_value.unwrap().value());
+        let read_map = storage[0].read().unwrap();
+        let expired_value = read_map.get("expired");
+        let living_value = read_map.get("living");
+
+        assert_eq!(1, read_map.len());
+        assert_eq!(true, expired_value.is_none());
+        assert_eq!(&String::from("living_value"), living_value.unwrap().value());
+    }
 }

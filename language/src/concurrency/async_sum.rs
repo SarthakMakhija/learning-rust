@@ -31,18 +31,23 @@ fn divide(input: &Vec<u64>, chunk_size: usize) -> Vec<Vec<u64>> {
     return input.chunks(chunk_size).map(|s| s.into()).collect();
 }
 
-#[tokio::test]
-async fn test_async_sum() {
-    let elements = prepare(500000);
-    let result = sum(elements);
-    assert_eq!(125_000_250_000, result.await);
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-fn prepare(count: u32) -> Vec<u64> {
-    let mut elements: Vec<u64> = Vec::with_capacity(500000);
-    (1..count + 1).
-        for_each(|e| {
-            elements.push(u64::from(e));
-        });
-    return elements;
+    #[tokio::test]
+    async fn test_async_sum() {
+        let elements = prepare(500000);
+        let result = sum(elements);
+        assert_eq!(125_000_250_000, result.await);
+    }
+
+    fn prepare(count: u32) -> Vec<u64> {
+        let mut elements: Vec<u64> = Vec::with_capacity(500000);
+        (1..count + 1).
+            for_each(|e| {
+                elements.push(u64::from(e));
+            });
+        return elements;
+    }
 }

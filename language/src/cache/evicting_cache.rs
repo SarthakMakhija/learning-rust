@@ -1,10 +1,7 @@
 use std::collections::hash_map::DefaultHasher;
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
-use std::rc::Rc;
 use std::sync::{Arc, RwLock};
-use std::thread;
-use std::time::Duration;
 
 use crate::cache::expiry::{Expiry, ValueRef};
 
@@ -60,29 +57,35 @@ impl EvictingCache {
     }
 }
 
-#[test]
-fn test_get_value_by_an_existing_key() {
-    let mut evicting_cache = EvictingCache::new(64);
-    evicting_cache.put(String::from("disk_type"), String::from("SSD"));
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let value = evicting_cache.get(String::from("disk_type"));
-    assert_eq!(&String::from("SSD"), value.unwrap().value());
+    #[test]
+    fn test_get_value_by_an_existing_key() {
+        let mut evicting_cache = EvictingCache::new(64);
+        evicting_cache.put(String::from("disk_type"), String::from("SSD"));
+
+        let value = evicting_cache.get(String::from("disk_type"));
+        assert_eq!(&String::from("SSD"), value.unwrap().value());
+    }
+
+    #[test]
+    fn test_get_value_by_an_non_existing_key() {
+        let mut evicting_cache = EvictingCache::new(64);
+        evicting_cache.put(String::from("disk_type"), String::from("SSD"));
+
+        let value = evicting_cache.get(String::from("non_existing"));
+        assert!(value.is_none());
+    }
+
+    #[test]
+    fn test_get_value_by_an_expired_value_of_key() {
+        let mut evicting_cache = EvictingCache::new(64);
+        evicting_cache.put_with_expiry(String::from("disk_type"), String::from("SSD"), Expiry::immediate());
+
+        let value = evicting_cache.get(String::from("disk_type"));
+        assert!(value.is_none());
+    }
 }
 
-#[test]
-fn test_get_value_by_an_non_existing_key() {
-    let mut evicting_cache = EvictingCache::new(64);
-    evicting_cache.put(String::from("disk_type"), String::from("SSD"));
-
-    let value = evicting_cache.get(String::from("non_existing"));
-    assert!(value.is_none());
-}
-
-#[test]
-fn test_get_value_by_an_expired_value_of_key() {
-    let mut evicting_cache = EvictingCache::new(64);
-    evicting_cache.put_with_expiry(String::from("disk_type"), String::from("SSD"), Expiry::immediate());
-
-    let value = evicting_cache.get(String::from("disk_type"));
-    assert!(value.is_none());
-}

@@ -29,18 +29,23 @@ fn divide(input: &Vec<u64>, chunk_size: usize) -> Vec<Vec<u64>> {
     return input.chunks(chunk_size).map(|s| s.into()).collect();
 }
 
-#[test]
-fn test_concurrent_sum() {
-    let elements = prepare(500000);
-    let result = sum(elements);
-    assert_eq!(125_000_250_000, result);
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-fn prepare(count: u32) -> Vec<u64> {
-    let mut elements: Vec<u64> = Vec::with_capacity(500000);
-    (1..count+1).
-        for_each(|e| {
-            elements.push(u64::from(e));
-        });
-    return elements;
+    #[test]
+    fn test_concurrent_sum() {
+        let elements = prepare(500000);
+        let result = sum(elements);
+        assert_eq!(125_000_250_000, result);
+    }
+
+    fn prepare(count: u32) -> Vec<u64> {
+        let mut elements: Vec<u64> = Vec::with_capacity(500000);
+        (1..count + 1).
+            for_each(|e| {
+                elements.push(u64::from(e));
+            });
+        return elements;
+    }
 }
